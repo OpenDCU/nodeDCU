@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <title>WebSocket Test</title>
+  <style>
+	#lamp {
+		height: 64px;
+		width: 64px;
+		background-image: url('lamp.svg#black');
+		/*background-color: blue;
+		overflow: hidden; */
+		border: 2px solid red;
+	}
+  </style>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js" ></script>
+  <script language="javascript" type="text/javascript">
+  	var LAMP_URL_BASE = "file:///home/kim/Development/node.js/chat/public/lamp.svg"
+	var wsUri = "ws://localhost:1337";
+	var output;
+
+	function init() {
+		output = $("#output");
+		clickLamp();
+		testWebSocket();
+	}
+
+	// web socket stuff
+	function testWebSocket() {
+		websocket = new WebSocket(wsUri);
+		websocket.onopen = function(evt) { onOpen(evt) };
+		websocket.onclose = function(evt) { onClose(evt) };
+		websocket.onmessage = function(evt) { onMessage(evt) };
+		websocket.onerror = function(evt) { onError(evt) };
+	}
+
+	function onOpen(evt) {
+		writeToScreen("CONNECTED");
+		doSend("REG");
+	}
+	function onClose(evt) {
+		writeToScreen("DISCONNECTED");
+	}
+    function onMessage(evt) {
+    	d = evt.data;
+    	writeToScreen('<span style="color: blue;">RESPONSE: ' + d+'</span>');
+    	msgType = d.substring(0,3);
+    	switch (msgType)
+    	{
+    		case "VAL":
+    			jsonData=d.substring(3,d.length);
+    			writeToScreen('<span style="color: green;">jsonData: ' + jsonData +'</span>');
+    			j=JSON.parse(jsonData);
+    			writeToScreen("Value found: "+j['state']);
+    			doLamp(j['state']);
+    			break;
+    		default:
+    			writeToScreen("unrecognised resonse");
+    	}
+
+
+    	//websocket.close();
+    }
+    function onError(evt) {
+    	writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
+    function doSend(message) {
+    	writeToScreen("SENT: " + message);  websocket.send(message);
+    }
+    function writeToScreen(message) {
+		output.append("<p style='wordWrap: break-word'>"+message+"</p>");
+	}
+
+	// UI stuff
+	function clickLamp() {
+		$("#lamp").click(function() {
+			if ($(this).css("background-image") == "url(\""+LAMP_URL_BASE+'#yellow")' )
+			{
+				//$(this).css("background-image","url('"+LAMP_URL_BASE+"#black')");
+			}
+			else if ($(this).css("background-image") == "url(\""+LAMP_URL_BASE+'#black")' )
+			{
+				//$(this).css("background-image","url('"+LAMP_URL_BASE+"#yellow')");
+			}
+		});
+	}
+	function doLamp(isOn) {
+		alert(isOn);
+		if (isOn)
+		{
+			$("#lamp").css("background-image","url('"+LAMP_URL_BASE+"#yellow')");
+		}
+		else
+		{
+			$("#lamp").css("background-image","url('"+LAMP_URL_BASE+"#black')");
+		}
+	}
+
+
+
+	$().ready(init);
+  </script>
+</head>
+<body>
+	<h2>WebSocket Test</h2>
+	<div id="output"></div>
+	<div id="lamp">&nbsp;</div>
+</body>
+</html>

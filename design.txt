@@ -1,0 +1,51 @@
+Consider first a simple lamp (actuator) or thermostat (sensor)
+
+Devices have zero or one "Master"
+
+On server, device has three states:
+	"Unknown" -- Master device never seen
+	"Offline" -- Master device currently not connected to DCU
+    "Online"  -- Webservice connection currently active
+
+Value has timestamp, or is "none":
+
+{profile: <device-profile> value: <device-specific-format> or Null, timestamp: iso-date-time}
+
+profile - 		Reference to standard profile
+
+iso-date-time - optionally stamped by device and preserved by server,
+				otherwise stamped by server on reception.
+				Format ISO 8601, always in UTC,
+				resolution one millisecond:
+				YYYY-MM-DDThh:mm:ss.sssZ
+
+value -			For lamp: 0 for off, 1 for on.
+				For thermostat: {temperature: dd.d, unit: "celcius"}
+
+Server needs to send its idea of current time with every message
+
+Messages:
+
+REG - Register
+	{
+	role: master/slave,
+	id: <device id>
+	[value: <device-specific-format>, // mandatory for master,
+			??ignored?? or used as ??"set"?? for slave]
+	[delay: default 0, age of returned value in milliseconds,
+			to allow for return of "stale" values]
+	}
+	When received from master, results in VAL being sent to all slaves
+
+SET - Change the value. Sent by slaves only;
+		if received from master: ??treated as VAL??
+								 ??protocol error??
+
+VAL - report the value (sent by master or server only; ignored from slaves)
+	  Propgated to all registered slaves
+	  Sent by master in response to "SET"
+	  Sent by server in response to "REG"
+	  includes "Status"
+
+DER - De-register
+	  From master, results in "VAL" message being sent to slaves with status changed to "Offline".
