@@ -12,7 +12,63 @@ Version  Changes
 
  */
 
-var state = 0;
+var express = require('express');
+var app = express();
+
+var redis = require('redis').createClient();
+
+// top and tail
+var header = function(req, res, next) {
+    res.writeHeader(200, {'content-type': "text/html"});
+    res.write(
+      '<html>'+
+      '<head>'+
+      '<title>Test page</title>'+
+      '</head>'+
+      '<body>'
+    );
+	next();
+};
+
+var footer = function(req, res, next) {
+	// written so it can be called with two OR three parameters
+	res.write(
+    '</body>'+
+    '</html>');
+	if (typeof(next) == 'function') next();
+};
+
+var pageMeat = function (req, res, next) {
+	// the page number is req.params.id
+	// so, get the config...
+    redis.hget('DCU:pages',req.params.id, function (err,v){
+		// ... and handle what it tells us
+		if (err) {
+			res.write("Error: "+err.message);
+		} else if (v===null) {
+			res.write("Page not found");
+		} else {
+			v = JSON.parse(v);
+			res.write('<div>'+v.value+'<br /></div>');
+		}
+		next();
+    });
+};
+
+
+
+app.get('/page/:id', header, pageMeat, footer, function(req, res) {
+  res.end();
+});
+
+require('http').createServer(app).listen(3008);
+
+
+
+
+// ********** socket.io *********
+
+/*var state = 0;
 
 // initialise console reading
 var readline = require('readline');
@@ -50,3 +106,4 @@ function handleInput(answer) {
 }
 
 rl.question("Send:", handleInput);
+*/
