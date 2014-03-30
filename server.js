@@ -11,7 +11,7 @@ Version  Changes
 ------------------------------------------------------------------------------
 0.01.01  Initial websocket server
 
- */
+*/
 
 // ****** config options ******
 
@@ -30,7 +30,33 @@ var redis = require('redis').createClient();
 var http = require('http').createServer(app);
 var io = require('socket.io');
 
+var fs = require("fs");
+
 io.listen(http);
+
+// set up jade, sylus & nib
+
+var jade   = require('jade');   // template compiler
+var stylus = require('stylus'); // css compiler
+var nib    = require('nib');    // utilities for css
+
+function compile(str, path) {
+  return stylus(str).set('filename', path).use(nib());
+}
+
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+
+app.use(express.logger('dev'));
+app.use(stylus.middleware({ src: __dirname + '/public'
+                          , compile: compile
+                          })
+);
+app.use(express.static(__dirname + '/public'));
+
+//
+
+// ******* Some documentation ******
 
 /* redis "DCU:devices" hash table
   key:    DeviceID
@@ -39,13 +65,33 @@ io.listen(http);
           } 
 */
 
-var lamp = function (id) {
-  this.content = '<img src="lamp.svg" />'+'<br />'+id;
-};
+var deviceFactories ={};  // in-memory mapping between device classes and their instance handler factory
+var devices = {};          // in-memory mapping between device id and device's instance object
 
-devices = { "lamp123": new lamp("lamp123")
-          , "lamp124": new lamp("lamp124")
-          };
+// scaffolding to create a temporary instance of a device factory
+// "lamp" in this case
+// this will ultimately be
+// lamp = require('lamp');
+// or rather: deviceFactories = { "lamp": require('lamp'), etc };
+
+fs.readFile('devices/lamp.jade', function(err,data) {
+  if (err) {
+    console.log("html component for 'Lamp' not found:\n"+err);
+    data="???";
+  }
+  console.log("building html component for 'Lamp':\n"+jade.compile(data)({'id':"id"}));
+
+  var Lamp = function (id) {
+    console.log("building html component for 'Lamp':"+id);
+    this.content = this.lampFn({'id':id});
+  };
+  Lamp.prototype = { lampFn: jade.compile(data) };
+  deviceFactories["lamp"] = Lamp;
+
+  devices["lamp123"] = new deviceFactories["lamp"]("lamp123");
+  devices["lamp124"] = new deviceFactories["lamp"]("lamp124");
+
+});
 
 // ****** build web pages ******
  
