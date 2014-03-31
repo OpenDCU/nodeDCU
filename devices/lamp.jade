@@ -19,9 +19,9 @@ script.
   DCU_#{id}.v = 1;
   DCU_#{id}.onclick=function () {
     var d = document.getElementById("DCU_#{id}");
-    console.log('sent: DCU_#{id}",{"set": "'+d.v+'}');
+    console.log('sent: DCU_#{id},\'{"set": "'+d.v+'"}\'');
     d.v = 1-d.v;
-    socket.emit("DCU_#{id}",{'set': d.v});
+    socket.emit("DCU_#{id}",'{"set": "'+d.v+'"}');
   };
 
 img(src="/lamp.svg#yellow", height="60%" width="60%", style="display: block; margin: 0 auto; width: 80%")

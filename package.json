@@ -1,0 +1,18 @@
+{ "bname":      "OpenDCU"
+, "version":    "0.0.0"
+, "description":"Smart home control infrastructure"
+, "keywords":   "home control embedded"
+, "homepage":   "http://www.OpenDCU.org/"
+, "bugs":       "https://github.com/OpenDCU/nodeDCU/issues"
+, "license":    "BSD-3-Clause"
+, "author":     "Kim Spence-Jones <kim@spencejones.com>"
+, "repository": { "type":   "git"
+                , "url":    "https://github.com/OpenDCU/nodeDCU/"
+                }
+, "dependencies":
+                { "redis":      "~0.10.1"
+                , "hiredis":    "~0.1.16"
+                , "express":    "~3.5.0"
+                }
+, "private":    true
+}

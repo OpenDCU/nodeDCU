@@ -15,6 +15,10 @@ Version  Changes
 
  */
 
+var SERVER = "localhost";
+var PORT   = 3008;
+
+
 // Initialise console input
 var readline = require('readline');
 
@@ -23,16 +27,16 @@ var rl = readline.createInterface({
 			output: process.stdout
 		});
 
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://localhost:1337');
-ws.on('open', function() {
-//    ws.send('something');
-});
-ws.on('message', function(data, flags) {
-	console.log("Received: "+data);
-	interact();
+var socket = require('socket.io-client').connect(SERVER,{port:PORT});
+socket.on('connect', function() {
+    socket.emit('registerMaster', 'DCU_lamp123');
+    socket.on('set', function (data) {
+    	console.log("processing set " + data);
+    	console.log("Emitting: "+JSON.stringify({'value': JSON.parse(data).set}));
+    	socket.emit('val', JSON.stringify({'value': JSON.parse(data).set}));
     // flags.binary will be set if a binary data is received
     // flags.masked will be set if the data was masked
+    });
 });
 
 function interact() {

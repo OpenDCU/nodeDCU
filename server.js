@@ -28,8 +28,9 @@ var app = express();
 var redis = require('redis').createClient();
 
 var http = require('http').createServer(app);
-var io = require('socket.io').listen(http);
-
+var sktio = require('socket.io')
+var io = sktio.listen(http);
+io.set('log level', 1); // reduce logging
 var fs = require("fs");
 
 //io;
@@ -69,7 +70,7 @@ var deviceFactories ={};  // in-memory mapping between device classes and their 
 var devices = {};         // in-memory mapping between device id and device's instance object
 var registrations = {};   // in-memory record of listeners for each device (id used as property, each property is an array)
 var deviceState = {};     // in-memory record of current state of each device (id as property, values are current state)
-
+var masters = {};         // in-memory record of master's socket for each ID
 // scaffolding to create a temporary instance of a device factory
 // "lamp" in this case
 // this will ultimately be
@@ -154,9 +155,13 @@ var pageMeat = function (req, res, next) {
 		if (err) {
 			res.write("Error: "+err.message);
 		} else if (v===null) {
-			res.write("Page not found");
+			res.write("Page description not found");
 		} else {
-			v = JSON.parse(v).value;
+      console.log("raw data: "+v+", type:"+typeof(v));
+			v = JSON.parse(v);
+      console.log("parsed data: "+v);
+      v=v.value;
+      console.log("page description found: "+typeof(v));
       // v is now the array of instances
       for (var i=0; i<v.length; i++){
         res.write('<div class="device" id="DCU_'+v[i]+'">' + devices[v[i]].content + '</div>');
@@ -180,15 +185,49 @@ http.listen(PORT);
 // ********** socket.io *********
 io.sockets.on('connection', function (socket) {
   socket.on('registerClient', function(id){
+    dumpRegistrations("registerClient pre");
     if (registrations.hasOwnProperty(id)) {
       console.log("adding registration for "+id);
-      registrations[id].push(socket);
     } else {
-      registrations[id] = [socket];
+      console.log("creating registration for "+id);
+      registrations[id] = new Array();
+    }
+    registrations[id].push(socket);
+    dumpRegistrations("registerClient post");    
+    if (!deviceState.hasOwnProperty(id)) {
       deviceState[id] = {'value':'?'};
     }
     socket.emit(id,deviceState[id]); // report current state
+
+    socket.on(id, function(data) { // set up handler for incoming "set"
+      if (masters.hasOwnProperty(id)) {
+        masters[id].emit("set", data);
+      }
+    })
   });
+  socket.on('registerMaster', function(id){
+    if (masters.hasOwnProperty(id)) {
+      if (masters[id] != socket){
+
+      } else {
+        console.log("Warning: master reregistration for "+id);
+      }
+    } else {
+      console.log("Registering master for "+id);
+    }
+    masters[id] = socket;
+    // we have no value yet...
+    deviceState[id] = {'value':'?'};
+    socket.on("val", function (data) {
+      console.log("received from master "+id+": "+data);
+      var i = 0;
+      while (subSkt = registrations[id][i]) {
+        console.log("sending "+data_+" to "+ subSkt);
+        subSkt.emit(id, data);
+      }
+    })
+  });
+
   socket.on('disconnect', function(){
     // remove this socket from all listener chains
     for (var id in registrations ) {
@@ -201,43 +240,11 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
-/* var state = 0;
-
-// initialise console reading
-var readline = require('readline');
-
-var rl = readline.createInterface({
-			input: process.stdin,
-			output: process.stdout
-		});
-
-*
-// initialise web socket server
-var WebSocketServer = require('ws').Server,
-    wss = new WebSocketServer({port: 1337}),
-    wsg = new Array();
-
-wss.on('connection', (function(ws) {
-	wsg.push(ws);
-    ws.on('message', function(message) {
-        console.log('received: %s', message);
-    });
-    ws.send('VAL{"state":'+state+'}');
-})
-);
-
-function updateListeners() {
-	for (var i = 0; i < wsg.length; i++) {
-    wsg[i].send('VAL{"state":'+state+'}');
-}
-}
-
-function handleInput(answer) {
-	console.log("Sending:", answer);
-	state=answer;
-	updateListeners();
-	rl.question("Send:", handleInput);
-}
-
-rl.question("Send:", handleInput);
-*/
+function dumpRegistrations (text) {
+  console.log(text+":\n")
+  for (var key in registrations) {
+    if (registrations.hasOwnProperty(key)) {
+        console.log("...["+key+"]: '"+( (registrations[key][0]).toString() )+"'" );
+    }
+  }
+};
