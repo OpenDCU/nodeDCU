@@ -1,4 +1,28 @@
 // lamp component
-img(src="lamp.svg")
-br
-| #{id}
+script.
+  var socket = io.connect('http://localhost');
+  socket.on('connect', function () {
+    socket.emit('registerClient', 'DCU_#{id}')
+  });
+  socket.on('DCU_#{id}', function (data) {
+    console.log("Received: "+JSON.stringify(data));
+    if (data.hasOwnProperty('value')) {
+      console.log("Value is "+data.value);
+      if (data.value == '?') {
+        $('#DCU_#{id} img').attr('src',"/lamp.svg#grey");
+      } else {
+        $('#DCU_#{id} img').attr('src',"/lamp.svg#"+((data.value > 0.5)?"yellow":"black"));
+      }
+    }
+  });
+  var DCU_#{id} = document.getElementById("DCU_#{id}");
+  DCU_#{id}.v = 1;
+  DCU_#{id}.onclick=function () {
+    var d = document.getElementById("DCU_#{id}");
+    console.log('sent: DCU_#{id}",{"set": "'+d.v+'}');
+    d.v = 1-d.v;
+    socket.emit("DCU_#{id}",{'set': d.v});
+  };
+
+img(src="/lamp.svg#yellow", height="60%" width="60%", style="display: block; margin: 0 auto; width: 80%")
+p(style='font-size: 10px; text-align:center') #{id}

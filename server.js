@@ -28,11 +28,11 @@ var app = express();
 var redis = require('redis').createClient();
 
 var http = require('http').createServer(app);
-var io = require('socket.io');
+var io = require('socket.io').listen(http);
 
 var fs = require("fs");
 
-io.listen(http);
+//io;
 
 // set up jade, sylus & nib
 
@@ -66,13 +66,17 @@ app.use(express.static(__dirname + '/public'));
 */
 
 var deviceFactories ={};  // in-memory mapping between device classes and their instance handler factory
-var devices = {};          // in-memory mapping between device id and device's instance object
+var devices = {};         // in-memory mapping between device id and device's instance object
+var registrations = {};   // in-memory record of listeners for each device (id used as property, each property is an array)
+var deviceState = {};     // in-memory record of current state of each device (id as property, values are current state)
 
 // scaffolding to create a temporary instance of a device factory
 // "lamp" in this case
 // this will ultimately be
-// lamp = require('lamp');
+// Lamp = require('lamp');
 // or rather: deviceFactories = { "lamp": require('lamp'), etc };
+// 
+// TODO: put in PAR for all the factory making, and SEQ it with all the devices registration.
 
 fs.readFile('devices/lamp.jade', function(err,data) {
   if (err) {
@@ -84,6 +88,11 @@ fs.readFile('devices/lamp.jade', function(err,data) {
   var Lamp = function (id) {
     console.log("building html component for 'Lamp':"+id);
     this.content = this.lampFn({'id':id});
+    console.log("building message receiver for 'Lamp':"+id);
+    io.sockets.on('DCU_'+id, function (data) {
+      console.log("Data received from "+id+":\n"+JSON.stringify(data));
+
+    });
   };
   Lamp.prototype = { lampFn: jade.compile(data) };
   deviceFactories["lamp"] = Lamp;
@@ -99,6 +108,7 @@ fs.readFile('devices/lamp.jade', function(err,data) {
 var header = function(req, res, next) {
     res.writeHeader(200, {'content-type': "text/html"});
     res.write(
+      '<!doctype html>'+
       '<html>'+
       '<head>'+
       '  <title>Test page</title>'+
@@ -108,12 +118,19 @@ var header = function(req, res, next) {
       '  <style>'+
       '    .device {'+
       '      min-width: '+ ELEMENT_SIZE +
+      '      max-width: '+ ELEMENT_SIZE +
       '      width: '+ ELEMENT_SIZE +
       '      min-height: '+ ELEMENT_SIZE +
+      '      max-height: '+ ELEMENT_SIZE +
       '      height: '+ ELEMENT_SIZE +
       '      border: 2px solid red;'+
+      '      overflow: hidden;'+
+      '      display: inline-block'+
       '    }'+
       '  </style>'+
+      '  <script>'+
+      '      var socket = io.connect("http://'+SERVER+':'+PORT+'");'+
+      '  </script>'+
       '</head>'+
       '<body>'+
       '<h1>Test page</h1>'
@@ -142,7 +159,7 @@ var pageMeat = function (req, res, next) {
 			v = JSON.parse(v).value;
       // v is now the array of instances
       for (var i=0; i<v.length; i++){
-        res.write('<div class="device" id="'+v[i]+'"">' + devices[v[i]].content + '</div>');
+        res.write('<div class="device" id="DCU_'+v[i]+'">' + devices[v[i]].content + '</div>');
       }
 		}
 		next();
@@ -161,13 +178,29 @@ http.listen(PORT);
 
 
 // ********** socket.io *********
-/*io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
+io.sockets.on('connection', function (socket) {
+  socket.on('registerClient', function(id){
+    if (registrations.hasOwnProperty(id)) {
+      console.log("adding registration for "+id);
+      registrations[id].push(socket);
+    } else {
+      registrations[id] = [socket];
+      deviceState[id] = {'value':'?'};
+    }
+    socket.emit(id,deviceState[id]); // report current state
+  });
+  socket.on('disconnect', function(){
+    // remove this socket from all listener chains
+    for (var id in registrations ) {
+      var i = registrations[id].indexOf(socket);
+      if (i > -1) {     // we're registered in this one
+        registrations[id].splice(i,1); // remove the element
+        console.log("removing registration from "+id);
+      }
+    }
   });
 });
-*/
+
 /* var state = 0;
 
 // initialise console reading
