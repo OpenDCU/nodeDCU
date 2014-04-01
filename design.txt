@@ -59,9 +59,36 @@ Redis hash
 Key     'Pages'
 Hash    'PageNumber'
 Value   {prototype:        (the kind of 'thing' this is)
-         instance#:        (the globally unique instance identifier)
+         instanceTag:        (the globally unique instance identifier)
          xy:        [x,y]  (coordinates on the page)
          options:   {}     (info on how the 'thing' should behave and be
                             displayed on this page (e.g. name, small/big,
                             full/summary, link target, etc))
         }
+
+Transaction chains V2...
+
+#On client start/connect
+(for each resource of interest)
+client - > server:  registerClient id
+server - > client:  id {value:}
+
+#On master start/connect
+master - > server:  registerMaster id {value:}
+server - > clients: id {value:}
+
+#On client value change request
+client - > server: id {value:}
+server - > master: set {value:}
+[will lead to...]
+
+#On master value change
+master - > server:  val: {value:}
+server - > clients: id {value:}
+
+#On master disconnect
+server -> clients: id {value: 'offline'}
+
+#On client disconnect
+(client removed from lists of subscribers)
+

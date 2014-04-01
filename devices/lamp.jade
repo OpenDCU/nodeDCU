@@ -1,28 +1,40 @@
 // lamp component
+object(id = 'DCU_#{id}_img' type="image/svg+xml" data="/lamp.svg", height="60%" width="60%", style="display: block; margin: 0 auto; width: 80%")
+p(style='font-size: 10px; text-align:center') #{id}
 script.
-  var socket = io.connect('http://localhost');
-  socket.on('connect', function () {
-    socket.emit('registerClient', 'DCU_#{id}')
-  });
-  socket.on('DCU_#{id}', function (data) {
-    console.log("Received: "+JSON.stringify(data));
-    if (data.hasOwnProperty('value')) {
-      console.log("Value is "+data.value);
-      if (data.value == '?') {
-        $('#DCU_#{id} img').attr('src',"/lamp.svg#grey");
-      } else {
-        $('#DCU_#{id} img').attr('src',"/lamp.svg#"+((data.value > 0.5)?"yellow":"black"));
+  $(window).load(function() {
+    console.log("window loaded");
+
+    //var socket = io.connect('http://localhost');
+
+    socket.on('connect', function () {
+      console.log("DCU_#{id} connected");
+      socket.emit('registerClient', 'DCU_#{id}');
+    });
+
+    socket.on('DCU_#{id}', function (data) {
+      console.log("Received: "+JSON.stringify(data));
+      if (data.hasOwnProperty('value')) {
+        console.log("Value is "+data.value);
+        if (data.value == 'offline') {
+          console.log('setting attr to grey');
+          setSvgColor("grey");
+        } else {
+          setSvgColor((data.value > 0.5)?"yellow":"black");
+        }
       }
+    });
+
+    var DCU_#{id} = document.getElementById("DCU_#{id}");
+    DCU_#{id}.v = 1;
+    DCU_#{id}.onclick=function () {
+      var d = document.getElementById("DCU_#{id}");
+      console.log('sent: DCU_#{id},\'{"set": "'+d.v+'"}\'');
+      d.v = (d.v>0.5)?0:1;
+      socket.emit("DCU_#{id}",'set','{"value": "'+d.v+'"}');
+    };
+    function setSvgColor(color) {
+      document.getElementById('DCU_#{id}_img').contentDocument.doColor(color);
     }
   });
-  var DCU_#{id} = document.getElementById("DCU_#{id}");
-  DCU_#{id}.v = 1;
-  DCU_#{id}.onclick=function () {
-    var d = document.getElementById("DCU_#{id}");
-    console.log('sent: DCU_#{id},\'{"set": "'+d.v+'"}\'');
-    d.v = 1-d.v;
-    socket.emit("DCU_#{id}",'{"set": "'+d.v+'"}');
-  };
 
-img(src="/lamp.svg#yellow", height="60%" width="60%", style="display: block; margin: 0 auto; width: 80%")
-p(style='font-size: 10px; text-align:center') #{id}

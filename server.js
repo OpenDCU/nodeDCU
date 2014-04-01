@@ -130,7 +130,8 @@ var header = function(req, res, next) {
       '    }'+
       '  </style>'+
       '  <script>'+
-      '      var socket = io.connect("http://'+SERVER+':'+PORT+'");'+
+      '      var socket;'+
+      '      $(window).load(function(){ socket = io.connect("http://'+SERVER+':'+PORT+'"); });'+
       '  </script>'+
       '</head>'+
       '<body>'+
@@ -190,12 +191,12 @@ io.sockets.on('connection', function (socket) {
       console.log("adding registration for "+id);
     } else {
       console.log("creating registration for "+id);
-      registrations[id] = new Array();
+      registrations[id] = [];
     }
     registrations[id].push(socket);
-    dumpRegistrations("registerClient post");    
+    dumpRegistrations("registerClient post");
     if (!deviceState.hasOwnProperty(id)) {
-      deviceState[id] = {'value':'?'};
+      deviceState[id] = {'value':'offline'};
     }
     socket.emit(id,deviceState[id]); // report current state
 
@@ -203,7 +204,7 @@ io.sockets.on('connection', function (socket) {
       if (masters.hasOwnProperty(id)) {
         masters[id].emit("set", data);
       }
-    })
+    });
   });
   socket.on('registerMaster', function(id){
     if (masters.hasOwnProperty(id)) {
@@ -225,7 +226,7 @@ io.sockets.on('connection', function (socket) {
         console.log("sending "+data_+" to "+ subSkt);
         subSkt.emit(id, data);
       }
-    })
+    });
   });
 
   socket.on('disconnect', function(){
@@ -241,10 +242,10 @@ io.sockets.on('connection', function (socket) {
 });
 
 function dumpRegistrations (text) {
-  console.log(text+":\n")
+  console.log(text+":\n");
   for (var key in registrations) {
     if (registrations.hasOwnProperty(key)) {
-        console.log("...["+key+"]: '"+( (registrations[key][0]).toString() )+"'" );
+        console.log("...["+key+"]: '"+( (registrations[key][0]) )+"'" );
     }
   }
-};
+}

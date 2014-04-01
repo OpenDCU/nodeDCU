@@ -1,0 +1,13 @@
+<html>
+<body onload="doit()">
+    <object id="test" data="test-vector.svg"></object>
+    <div onclick="doit()">Do it</div>
+    <script>
+    function doit() {
+        var svg = document.getElementById('test');
+        console.log(svg);
+        svg.contentDocument.fillCircle('state2');
+    }
+    </script>
+</body>
+</html>
