@@ -81,8 +81,8 @@ var masters = {};         // in-memory record of master's socket for each ID
 
 fs.readFile('devices/lamp.jade', function(err,data) {
   if (err) {
-    console.log("html component for 'Lamp' not found:\n"+err);
-    data="???";
+    console.log("Error: html component for 'Lamp' not found:\n"+err);
+    data="????"; // this is what will be returned for each instance
   }
   console.log("building html component for 'Lamp':\n"+jade.compile(data)({'id':"id"}));
 
@@ -185,6 +185,7 @@ http.listen(PORT);
 
 // ********** socket.io *********
 io.sockets.on('connection', function (socket) {
+  // handle client(s)...
   socket.on('registerClient', function(id){
     dumpRegistrations("registerClient pre");
     if (registrations.hasOwnProperty(id)) {
@@ -202,14 +203,19 @@ io.sockets.on('connection', function (socket) {
 
     socket.on(id, function(data) { // set up handler for incoming "set"
       if (masters.hasOwnProperty(id)) {
+        console.log("sending to master "+id+", value: "+JSON.stringify(data));
         masters[id].emit("set", data);
+      } else {
+        console.log("No master to send "+id + " to.");
       }
     });
   });
-  socket.on('registerMaster', function(id){
+
+  // handle master...
+  socket.on('registerMaster', function(id, data){
     if (masters.hasOwnProperty(id)) {
       if (masters[id] != socket){
-
+        console.log("Warning: master  different registration for "+id); 
       } else {
         console.log("Warning: master reregistration for "+id);
       }
@@ -217,14 +223,30 @@ io.sockets.on('connection', function (socket) {
       console.log("Registering master for "+id);
     }
     masters[id] = socket;
-    // we have no value yet...
-    deviceState[id] = {'value':'?'};
+ 
+    if (data) {
+      console.log("Data received: "+data);
+      deviceState[id] = data;
+      console.log("Echoing data from "+id+"master, value: "+data);
+      tellClients(id,data);
+    } else {
+      console.log("No data received with registration")
+    }
+
     socket.on("val", function (data) {
       console.log("received from master "+id+": "+data);
-      var i = 0;
-      while (subSkt = registrations[id][i]) {
-        console.log("sending "+data_+" to "+ subSkt);
-        subSkt.emit(id, data);
+      tellClients(id,data);
+    });
+
+    socket.on('disconnect', function() {
+      if (!masters.hasOwnProperty(id)) {
+        console.log("Warning: disconnect of unregistered master ???");
+      } else {
+        console.log("Disconnect of master "+id);
+        delete masters[id];
+      deviceState[id] = data = {'value':'offline'};
+      tellClients(id,data);
+
       }
     });
   });
@@ -246,6 +268,17 @@ function dumpRegistrations (text) {
   for (var key in registrations) {
     if (registrations.hasOwnProperty(key)) {
         console.log("...["+key+"]: '"+( (registrations[key][0]) )+"'" );
+    }
+  }
+}
+
+function tellClients(id,data){
+  // emit data to all subscribed clients of id, if any
+  if (registrations.hasOwnProperty(id)) {
+    var i = 0;
+    while (subSkt = registrations[id][i++]) {
+      console.log("sending "+data+" to "+ subSkt);
+      subSkt.emit(id, data);
     }
   }
 }

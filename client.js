@@ -18,6 +18,13 @@ Version  Changes
 var SERVER = "localhost";
 var PORT   = 3008;
 
+var CLIENT_NAME = 'DCU_lamp123';
+if (process.argv[2]) {
+	CLIENT_NAME = process.argv[2];
+}
+console.log('Starting master for '+CLIENT_NAME);
+
+var myValue = 0;
 
 // Initialise console input
 var readline = require('readline');
@@ -29,11 +36,11 @@ var rl = readline.createInterface({
 
 var socket = require('socket.io-client').connect(SERVER,{port:PORT});
 socket.on('connect', function() {
-    socket.emit('registerMaster', 'DCU_lamp123');
+	console.log("Connected to server; registering "+CLIENT_NAME);
+    socket.emit('registerMaster', CLIENT_NAME, {"value": myValue});
     socket.on('set', function (data) {
         console.log("processing set " + data);
-        console.log("Emitting: "+JSON.stringify({'value': JSON.parse(data).set}));
-        socket.emit('val', JSON.stringify({'value': JSON.parse(data).set}));
+        socket.emit('val', data);
     // flags.binary will be set if a binary data is received
     // flags.masked will be set if the data was masked
     });

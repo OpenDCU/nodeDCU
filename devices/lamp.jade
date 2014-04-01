@@ -13,15 +13,19 @@ script.
     });
 
     socket.on('DCU_#{id}', function (data) {
-      console.log("Received: "+JSON.stringify(data));
+      console.log("Received: "+data);
       if (data.hasOwnProperty('value')) {
         console.log("Value is "+data.value);
         if (data.value == 'offline') {
           console.log('setting attr to grey');
           setSvgColor("grey");
         } else {
+          console.log('data value received: '+data.value);
+          console.log('setting attr to '+(data.value > 0.5)?"yellow":"black");
           setSvgColor((data.value > 0.5)?"yellow":"black");
         }
+      } else {
+        console.log("value not found");
       }
     });
 
@@ -31,7 +35,7 @@ script.
       var d = document.getElementById("DCU_#{id}");
       console.log('sent: DCU_#{id},\'{"set": "'+d.v+'"}\'');
       d.v = (d.v>0.5)?0:1;
-      socket.emit("DCU_#{id}",'set','{"value": "'+d.v+'"}');
+      socket.emit("DCU_#{id}",{"value": d.v});
     };
     function setSvgColor(color) {
       document.getElementById('DCU_#{id}_img').contentDocument.doColor(color);
