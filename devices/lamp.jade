@@ -19,10 +19,13 @@ script.
         if (data.value == 'offline') {
           console.log('setting attr to grey');
           setSvgColor("grey");
+          DCU_#{id}.v = -1;
         } else {
           console.log('data value received: '+data.value);
-          console.log('setting attr to '+(data.value > 0.5)?"yellow":"black");
-          setSvgColor((data.value > 0.5)?"yellow":"black");
+          var on = (data.value > 0.5);
+          console.log('setting attr to '+on?"yellow":"black");
+          setSvgColor(on?"yellow":"black");
+          DCU_#{id}.v = on?1:0;
         }
       } else {
         console.log("value not found");
@@ -30,12 +33,13 @@ script.
     });
 
     var DCU_#{id} = document.getElementById("DCU_#{id}");
-    DCU_#{id}.v = 1;
+    DCU_#{id}.v = -1; // -1 means offline/unknown
     DCU_#{id}.onclick=function () {
-      var d = document.getElementById("DCU_#{id}");
-      console.log('sent: DCU_#{id},\'{"set": "'+d.v+'"}\'');
-      d.v = (d.v>0.5)?0:1;
-      socket.emit("DCU_#{id}",{"value": d.v});
+      if (DCU_#{id}.v != -1) {
+        console.log('sent: DCU_#{id},\'{"set": "'+DCU_#{id}.v+'"}\'');
+        DCU_#{id}.v = (DCU_#{id}.v>0.5)?0:1;
+        socket.emit("DCU_#{id}",{"value": DCU_#{id}.v});
+      }
     };
     function setSvgColor(color) {
       document.getElementById('DCU_#{id}_img').contentDocument.doColor(color);

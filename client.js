@@ -40,6 +40,11 @@ socket.on('connect', function() {
     socket.emit('registerMaster', CLIENT_NAME, {"value": myValue});
     socket.on('set', function (data) {
         console.log("processing set " + data);
+        if (data.hasOwnProperty('value')) {
+            console.log("Light is "+((data.value>0.5)?"on":"off"));
+        } else {
+            console.log("Bad value");
+        }
         socket.emit('val', data);
     // flags.binary will be set if a binary data is received
     // flags.masked will be set if the data was masked
