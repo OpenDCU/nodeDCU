@@ -86,28 +86,13 @@ var masters = {};         // in-memory record of master's socket for each ID
 // 
 // TODO: put in PAR for all the factory making, and SEQ it with all the devices registration.
 
-fs.readFile('devices/lamp.jade', function(err,data) {
-  if (err) {
-    logger.info("Error: html component for 'Lamp' not found:\n"+err);
-    data="????"; // this is what will be returned for each instance
-  }
-  logger.info("building html component for 'Lamp':\n"+jade.compile(data)({'id':"id"}));
 
-  var Lamp = function (id) {
-    logger.info("building html component for 'Lamp':"+id);
-    this.content = this.lampFn({'id':id});
-    logger.info("building message receiver for 'Lamp':"+id);
-    io.sockets.on('DCU_'+id, function (data) {
-      logger.info("Data received from "+id+":\n"+JSON.stringify(data));
+DCU_lamp = require('./DCU_lamp');
+DCU_lamp.factory(io, function registerDCU_lamp(err,factory) {
+  deviceFactories['DCU_lamp'] = factory;
 
-    });
-  };
-  Lamp.prototype = { lampFn: jade.compile(data) };
-  deviceFactories["lamp"] = Lamp;
-
-  devices["lamp123"] = new deviceFactories["lamp"]("lamp123");
-  devices["lamp124"] = new deviceFactories["lamp"]("lamp124");
-
+  devices["lamp123"] = new deviceFactories['DCU_lamp']("lamp123");
+  devices["lamp124"] = new deviceFactories['DCU_lamp']("lamp124");
 });
 
 // ****** build web pages ******
