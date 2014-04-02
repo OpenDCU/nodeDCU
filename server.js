@@ -22,13 +22,20 @@ var ELEMENT_SIZE = "70px;";
 
 // ****** namespaces etc. ******
 
+var logger = require('./logger');
+logger.debugLevel = 'warn';
+console.log("OpenDCU server");
+logger.error("Test error");
+logger.warn("Test warning");
+logger.info("Test info");
+
 var express = require('express');
 var app = express();
 
 var redis = require('redis').createClient();
 
 var http = require('http').createServer(app);
-var sktio = require('socket.io')
+var sktio = require('socket.io');
 var io = sktio.listen(http);
 io.set('log level', 1); // reduce logging
 var fs = require("fs");
@@ -81,17 +88,17 @@ var masters = {};         // in-memory record of master's socket for each ID
 
 fs.readFile('devices/lamp.jade', function(err,data) {
   if (err) {
-    console.log("Error: html component for 'Lamp' not found:\n"+err);
+    logger.info("Error: html component for 'Lamp' not found:\n"+err);
     data="????"; // this is what will be returned for each instance
   }
-  console.log("building html component for 'Lamp':\n"+jade.compile(data)({'id':"id"}));
+  logger.info("building html component for 'Lamp':\n"+jade.compile(data)({'id':"id"}));
 
   var Lamp = function (id) {
-    console.log("building html component for 'Lamp':"+id);
+    logger.info("building html component for 'Lamp':"+id);
     this.content = this.lampFn({'id':id});
-    console.log("building message receiver for 'Lamp':"+id);
+    logger.info("building message receiver for 'Lamp':"+id);
     io.sockets.on('DCU_'+id, function (data) {
-      console.log("Data received from "+id+":\n"+JSON.stringify(data));
+      logger.info("Data received from "+id+":\n"+JSON.stringify(data));
 
     });
   };
@@ -158,11 +165,11 @@ var pageMeat = function (req, res, next) {
 		} else if (v===null) {
 			res.write("Page description not found");
 		} else {
-      console.log("raw data: "+v+", type:"+typeof(v));
+      logger.info("raw data: "+v+", type:"+typeof(v));
 			v = JSON.parse(v);
-      console.log("parsed data: "+v);
+      logger.info("parsed data: "+v);
       v=v.value;
-      console.log("page description found: "+typeof(v));
+      logger.info("page description found: "+typeof(v));
       // v is now the array of instances
       for (var i=0; i<v.length; i++){
         res.write('<div class="device" id="DCU_'+v[i]+'">' + devices[v[i]].content + '</div>');
@@ -189,9 +196,9 @@ io.sockets.on('connection', function (socket) {
   socket.on('registerClient', function(id){
     dumpRegistrations("registerClient pre");
     if (registrations.hasOwnProperty(id)) {
-      console.log("adding registration for "+id);
+      logger.info("adding registration for "+id);
     } else {
-      console.log("creating registration for "+id);
+      logger.info("creating registration for "+id);
       registrations[id] = [];
     }
     registrations[id].push(socket);
@@ -199,15 +206,15 @@ io.sockets.on('connection', function (socket) {
     if (!deviceState.hasOwnProperty(id)) {
       deviceState[id] = {'value':'offline'};
     }
-    console.log("registerClient: sending current state of "+id+": "+deviceState[id].value);
+    logger.info("registerClient: sending current state of "+id+": "+deviceState[id].value);
     socket.emit(id,deviceState[id]); // report current state
 
     socket.on(id, function(data) { // set up handler for incoming "set"
       if (masters.hasOwnProperty(id)) {
-        console.log("sending to master "+id+", value: "+JSON.stringify(data));
+        logger.info("sending to master "+id+", value: "+JSON.stringify(data));
         masters[id].emit("set", data);
       } else {
-        console.log("No master to send "+id + " to.");
+        logger.info("No master to send "+id + " to.");
       }
     });
   });
@@ -216,35 +223,34 @@ io.sockets.on('connection', function (socket) {
   socket.on('registerMaster', function(id, data){
     if (masters.hasOwnProperty(id)) {
       if (masters[id] != socket){
-        console.log("Warning: master  different registration for "+id); 
+        logger.warn("Warning: master  different registration for "+id);
       } else {
-        console.log("Warning: master reregistration for "+id);
+        logger.warn("Warning: master reregistration for "+id);
       }
     } else {
-      console.log("Registering master for "+id);
+      logger.info("Registering master for "+id);
     }
     masters[id] = socket;
  
     if (data) {
-      console.log("Data received: "+data);
+      logger.info("Data received: "+data);
       deviceState[id] = data;
-      console.log("Echoing data from "+id+"master, value: "+data);
+      logger.info("Echoing data from "+id+"master, value: "+data);
       tellClients(id,data);
     } else {
-      console.log("No data received with registration")
-    }
+      logger.warn("No data received with registration");    }
 
     socket.on("val", function (data) {
-      console.log("received from master "+id+": "+data);
+      logger.info("received from master "+id+": "+data);
       deviceState[id] = data;
       tellClients(id,data);
     });
 
     socket.on('disconnect', function() {
       if (!masters.hasOwnProperty(id)) {
-        console.log("Warning: disconnect of unregistered master ???");
+        logger.warn("Warning: disconnect of unregistered master ???");
       } else {
-        console.log("Disconnect of master "+id);
+        logger.info("Disconnect of master "+id);
         delete masters[id];
       deviceState[id] = data = {'value':'offline'};
       tellClients(id,data);
@@ -259,17 +265,17 @@ io.sockets.on('connection', function (socket) {
       var i = registrations[id].indexOf(socket);
       if (i > -1) {     // we're registered in this one
         registrations[id].splice(i,1); // remove the element
-        console.log("removing registration from "+id);
+        logger.info("removing registration from "+id);
       }
     }
   });
 });
 
 function dumpRegistrations (text) {
-  console.log(text+":\n");
+  logger.info(text+":\n");
   for (var key in registrations) {
     if (registrations.hasOwnProperty(key)) {
-        console.log("...["+key+"]: '"+( (registrations[key][0]) )+"'" );
+        logger.info("...["+key+"]: '"+( (registrations[key][0]) )+"'" );
     }
   }
 }
@@ -279,7 +285,7 @@ function tellClients(id,data){
   if (registrations.hasOwnProperty(id)) {
     var i = 0;
     while (subSkt = registrations[id][i++]) {
-      console.log("sending "+data+" to "+ subSkt);
+      logger.info("sending "+data+" to "+ subSkt);
       subSkt.emit(id, data);
     }
   }

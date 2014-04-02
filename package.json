@@ -13,6 +13,9 @@
                 { "redis":      "~0.10.1"
                 , "hiredis":    "~0.1.16"
                 , "express":    "~3.5.0"
+                , "cli-color":  "~0.2.3"
+                , "socket.io-client": "~0.9.16"
+                , "stylus":     "0.42.3"
                 }
 , "private":    true
 }
