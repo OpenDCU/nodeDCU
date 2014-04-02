@@ -199,6 +199,7 @@ io.sockets.on('connection', function (socket) {
     if (!deviceState.hasOwnProperty(id)) {
       deviceState[id] = {'value':'offline'};
     }
+    console.log("registerClient: sending current state of "+id+": "+deviceState[id].value);
     socket.emit(id,deviceState[id]); // report current state
 
     socket.on(id, function(data) { // set up handler for incoming "set"
@@ -235,6 +236,7 @@ io.sockets.on('connection', function (socket) {
 
     socket.on("val", function (data) {
       console.log("received from master "+id+": "+data);
+      deviceState[id] = data;
       tellClients(id,data);
     });
 

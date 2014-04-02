@@ -11,7 +11,7 @@
     .sprite { display: none; }
     /* .sprite:target { display: inline; } */
     /* make mouse clicks active in browser */
-    svg { pointer-events: none; }
+    * { pointer-events: none; }
     ]]>
   </style>
   <script>

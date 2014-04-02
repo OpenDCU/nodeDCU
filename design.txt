@@ -67,28 +67,29 @@ Value   {prototype:        (the kind of 'thing' this is)
         }
 
 Transaction chains V2...
+========================
 
-#On client start/connect
-(for each resource of interest)
-client - > server:  registerClient id
-server - > client:  id {value:}
-
-#On master start/connect
-master - > server:  registerMaster id {value:}
-server - > clients: id {value:}
-
-#On client value change request
-client - > server: id {value:}
-server - > master: set {value:}
-[will lead to...]
-
-#On master value change
-master - > server:  val: {value:}
-server - > clients: id {value:}
-
-#On master disconnect
-server -> clients: id {value: 'offline'}
-
-#On client disconnect
-(client removed from lists of subscribers)
+    #On client start/connect
+    (for each resource of interest)
+[c]  client - > server:  registerClient id
+[c]  server - > client:  id {value:}
+  
+    #On master start/connect
+[ ]  master - > server:  registerMaster id {value:}
+[ ]  server - > clients: id {value:}
+ 
+    #On client value change request
+[c]  client - > server: id set {value:}
+[ ]  server - > master: set {value:}
+[ ]  [will lead to...]
+  
+    #On master value change
+[ ]  master - > server:  val: {value:}
+[c]  server - > clients: id {value:}
+ 
+    #On master disconnect
+[ ]  server -> clients: id {value: 'offline'}
+  
+    #On client disconnect
+[ ]  (client removed from lists of subscribers)
 

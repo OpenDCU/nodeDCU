@@ -36,12 +36,13 @@ var rl = readline.createInterface({
 
 var socket = require('socket.io-client').connect(SERVER,{port:PORT});
 socket.on('connect', function() {
-	console.log("Connected to server; registering "+CLIENT_NAME);
+	console.log("Connected to server; registering "+CLIENT_NAME+", value: "+myValue);
     socket.emit('registerMaster', CLIENT_NAME, {"value": myValue});
     socket.on('set', function (data) {
         console.log("processing set " + data);
         if (data.hasOwnProperty('value')) {
             console.log("Light is "+((data.value>0.5)?"on":"off"));
+            myValue = (data.value>0.5)?1:0;
         } else {
             console.log("Bad value");
         }
