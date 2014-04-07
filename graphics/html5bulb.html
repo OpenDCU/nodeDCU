@@ -1,0 +1,57 @@
+<html>
+<head>
+<style>
+canvas {
+ //width: 450px;
+ //height: 150px;
+ background-color: #eee;
+ border: 1px red solid;
+}
+</style>
+</head>
+<body>
+   <header>
+      The header
+      <nav>
+         the nav
+      </nav>
+   </header>
+   <main>
+      <h1>The main area</h1>
+      <article>
+         <h1>The article</h1>
+         <section>
+            <h1>Section 1</h1>
+            <div>This is the main article.
+            </div>
+         </section>
+         <section>
+            <h1>Section 2 &ndash; a canvas</h1>
+            <canvas id="tutorial" width="100" height="100">Please update your browser to fully appreciate this page.</canvas>
+            <script>
+               var canvas = document.getElementById('tutorial');
+               //canvas.style.width = "450px";
+               var ctx = canvas.getContext('2d');
+               ctx.fillStyle = "#ffff00";
+               ctx.strokeStyle = "rgba(0, 0, 0, .2)";
+               ctx.lineWidth = 1;
+               ctx.globalAlpha = 1;
+               ctx.beginPath();
+               ctx.beginPath();
+               ctx.moveTo(7.0910121,42.22128);
+               ctx.bezierCurveTo(7.0910121,32.22128,0.0910110900000003,25.50555,0.0910110900000003,17.22128);
+               ctx.bezierCurveTo(0.0910110900000003,8.93701,6.8067421,2.22128,15.091012000000001,2.22128);
+               ctx.bezierCurveTo(23.375282,2.22128,30.091012,8.93701,30.091012,17.22128);
+               ctx.bezierCurveTo(30.091012,25.50555,23.091012,32.22128,23.091012,42.22128);
+               ctx.closePath();
+               ctx.fill();
+               ctx.stroke();
+            </script>
+         </section>
+      </article>
+    </main>
+    <footer>
+      <p> the footer</p>
+    </footer>
+</body>
+</html>

@@ -25,9 +25,9 @@ var ELEMENT_SIZE = "70px;";
 var logger = require('./logger');
 logger.debugLevel = 'warn';
 console.log("OpenDCU server");
-logger.error("Test error");
-logger.warn("Test warning");
-logger.info("Test info");
+//logger.error("Test error");
+//logger.warn("Test warning");
+//logger.info("Test info");
 
 var express = require('express');
 var app = express();
@@ -45,12 +45,12 @@ var fs = require("fs");
 // set up jade, sylus & nib
 
 var jade   = require('jade');   // template compiler
-var stylus = require('stylus'); // css compiler
-var nib    = require('nib');    // utilities for css
 
-function compile(str, path) {
-  return stylus(str).set('filename', path).use(nib());
-}
+//var stylus = require('stylus'); // css compiler
+//var nib    = require('nib');    // utilities for css
+// function compile(str, path) {
+//   return stylus(str).set('filename', path).use(nib());
+// }
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
@@ -157,7 +157,7 @@ var pageMeat = function (req, res, next) {
       logger.info("page description found: "+typeof(v));
       // v is now the array of instances
       for (var i=0; i<v.length; i++){
-        res.write('<div class="device" id="DCU_'+v[i]+'">' + devices[v[i]].content + '</div>');
+        res.write('<section class="device" id="DCU_'+v[i]+'">' + devices[v[i]].content + '</section>');
       }
 		}
 		next();
