@@ -42,10 +42,10 @@ var jade   = require('jade');   // template compiler
  *                  descriptions)
  *     callback:    the callback function for completion event
  */
-var cb;
+
 exports.factory = function (io, callback) {
   logger.info("Creating factory for DCU_lamp");
-  cb = callback;
+  //var cb = callback;
   fs.readFile('devices/lamp.jade', function processData(err,fileData) {
     if (err) {
       logger.error("Error: html template for 'Lamp' not found:\n"+err);
@@ -64,6 +64,6 @@ exports.factory = function (io, callback) {
   
     factory.prototype = { jadeCompile: jade.compile(fileData) };
   
-    cb(err,factory);
+    callback(err,factory);
   });
 };
