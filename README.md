@@ -31,6 +31,14 @@ Node.js releases change rapidly. We're working on v0.10.26. Versions 0.9.xx and 
 For x86 Linux, http://nodejs.org/ has useful instructions. For the Pi, recent versions (April 2014) seem to have compile issues. https://gist.github.com/adammw/3245130 has instructions on installing a working set-up on the Pi.
 
 
+###Node modules
+
+Node.js has a cute module management system called NPM (node package management). This installs all required modules in a sub-directory called `node_modules`. Cutely, dependencies of installed packages result in sub-directory copies within eahc package, so use of multiple versions of a package for different modules "just works"(tm). In production, releases are supposed to carry with them a snapshot of their `node_modules` hierarchy. In development, package requirements are described in `package.json`, and packages are fetched from the npm server using the command:
+
+    npm install
+    
+so do that now. :-)
+
 ###Redis
 
 Redis is a low-overhead key-value database. It is used by the server to store persistent state.
