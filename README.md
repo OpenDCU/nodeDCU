@@ -13,6 +13,15 @@ In the current code, clients are all web pages. Up-to-date browsers are recommen
 
 Installing
 ----------
+###Clone this git repo
+
+    git clone https://github.com/OpenDCU/nodeDCU.git
+
+will create a directory called nodeDCU in whichever location you execute that command. You can then
+
+    cd nodeDCU
+
+
 ###Node.js
 
 Node.js is a non-browser javascript envirinment, becoming popular for server implementations. The OpenDCU code has both a server and a "master" implementation running under node.
