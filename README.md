@@ -73,4 +73,4 @@ in separate terminals (and possibly on separate machines)
     node master.js
     node master.js DCU_lamp124
 
-Now browse to <host>/page/1 in as many browser windows as you like. Everything should remain in sync as you click the browser icons.
+Now browse to `<host>/page/1` in as many browser windows as you like. Everything should remain in sync as you click the browser icons.
