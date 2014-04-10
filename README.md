@@ -52,4 +52,7 @@ At the moment, there is no way to edit the page layout for clients, other than p
 
 (Currently, this sets up one page: `<host>/page/1`, with two lamps: `DCU_lamp123` and `DCU_lamp124`
 
+Configuration
+-------------
 
+Currently, server address and port number are manually configured, in both server and master. You need to set the config variables in server.js and master.js. Usual internet rules apply to get stuff talking to each other. The server knows enough to deliver correctly configured web pages to clients.
