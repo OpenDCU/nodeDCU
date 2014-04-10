@@ -7,7 +7,7 @@ NodeDCU is an experimental implementation of OpenDCU using node.js. The architec
 * One "master" for each device; this may be the source of data for a sensor, or the controller for an actuator.
 * Multiple "clients" for devices; these may display sensor data, or send state-change requests to actuator masters.
 
-The server and masters may run on any linux system; the intended target is Raspberry Pi; I develop on Ubuntu.
+The server and masters may run on any linux system; the intended target is Raspberry Pi; I develop on Ubuntu. Stuff may well run on Windoze systems, but who knows!
 
 In the current code, clients are all web pages. Up-to-date browsers are recommended; we've not yet done the work to ensure support for historical browser versions.
 
