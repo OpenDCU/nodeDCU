@@ -41,5 +41,6 @@ At the moment, there is no way to edit the page layout for clients, other than p
 
     node makeRedisDb.js
 
+(Currently, this sets up one page: <host>/page/1 with two lamps: DCU\_lamp123 and DCU\_lamp124
 
 
