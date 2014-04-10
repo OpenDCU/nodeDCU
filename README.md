@@ -52,7 +52,17 @@ At the moment, there is no way to edit the page layout for clients, other than p
 
 (Currently, this sets up one page: `<host>/page/1`, with two lamps: `DCU_lamp123` and `DCU_lamp124`
 
-Configuration
+Configuration and running
 -------------
 
 Currently, server address and port number are manually configured, in both server and master. You need to set the config variables in server.js and master.js. Usual internet rules apply to get stuff talking to each other. The server knows enough to deliver correctly configured web pages to clients.
+
+to get things running:
+
+in separate terminals (and possibly on separate machines)
+
+    node server.js
+    node master.js
+    node master.js DCU_lamp124
+
+Now browse to <host>/page/1 in as many browser windows as you like. Everything should remain in sync as you click the browser icons.
