@@ -67,6 +67,12 @@ Currently, server address and port number are manually configured, in both serve
 
 to get things running:
 
+you need to start the redis server on the server box. Run redis-server from whereever you've installed it:
+
+    ~/redis-2.8.8/src/redis-server
+
+in my case.
+
 in separate terminals (and possibly on separate machines)
 
     node server.js

@@ -15,7 +15,9 @@ Version  Changes
 
 // ****** config options ******
 
-var SERVER = "10.0.1.71";
+//var SERVER = "192.168.0.30";
+var os = require('os');
+var SERVER = os.networkInterfaces()['eth0'][0]['address']; // get ip address
 var PORT   = 3008;
 
 var ELEMENT_SIZE = "70px;";
